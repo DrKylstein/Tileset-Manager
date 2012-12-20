@@ -1,5 +1,5 @@
 /*
- *  Tileset Manager, an editor for TILHEAD.CK1 files in the V2 patch for
+ *  Tileset Manager, an editor for TILEHEAD.CK? files in the V2 patch for
  *  Commander Keen: Invasion of the Vorticons.
  *  Copyright (C) 2012  Kyle Delaney
  *
