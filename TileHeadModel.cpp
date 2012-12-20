@@ -34,6 +34,7 @@ void TileHeadModel::reset(void) {
 	_data[MAP_LEVEL] = "tileset1.tls";
 	_data[END_LEVEL] = "tileset1.tls";
 	_data[TITLE_LEVEL] = "tileset1.tls";
+	emit dataChanged(index(0,0), index(rowCount(), 0));
 }
 bool TileHeadModel::load(QDataStream& stream) {
 	quint8 buffer[16];
@@ -45,6 +46,7 @@ bool TileHeadModel::load(QDataStream& stream) {
 		}
 		_data[i] = QString::fromLatin1((char *)buffer);
 	}
+	emit dataChanged(index(0,0), index(rowCount(), 0));
 	return true;
 }
 void TileHeadModel::dump(QDataStream& stream) const {

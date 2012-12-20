@@ -24,7 +24,6 @@
 #include "MainWindow.hpp"
 
 MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(parent, flags) {
-	setWindowTitle(tr("Tileset Manager"));
 	setWindowIcon(QIcon(":/images/icon.svg"));
 
 	QWidget* mainWidget = new QWidget();
@@ -104,7 +103,25 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(par
 		_helpViewer.move(settings.value("Position", QPoint(200, 200)).toPoint());
 		settings.endGroup();
 	_directory = settings.value("Working_Directory", QString()).toString();
+	_setFilename(settings.value("Last_File", QString()).toString());
 
+	if(!_filename.isEmpty()) {
+		QFile file(_filename);
+		if(!file.open(QIODevice::ReadOnly)) {
+			QMessageBox::critical(this, tr("File Error"),
+				tr("The last file could not be opened."));
+		} else {
+			QDataStream stream(&file);
+			if(!_model.load(stream)) {
+				QMessageBox::critical(this, tr("File Error"),
+					tr("The last file could not be opened."));
+				_model.reset();
+			}
+			setWindowModified(false);
+		}
+	}
+
+	connect(&_model, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(_changed(const QModelIndex&, const QModelIndex&)));
 }
 MainWindow::~MainWindow(void) {
 	QSettings settings(tr("Tileset Manager"), QString(), this);
@@ -118,12 +135,16 @@ MainWindow::~MainWindow(void) {
 		settings.setValue("Position", _helpViewer.pos());
 		settings.endGroup();
 	settings.setValue("Working_Directory", _directory);
+	settings.setValue("Last_File", _filename);
 }
 
 void MainWindow::_newFile(void) {
+	if(!_reallyClose()) return;
 	_model.reset();
+	setWindowModified(false);
 }
 void MainWindow::_openFile(void) {
+	if(!_reallyClose()) return;
 	QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), _directory,
 		tr("V2 tilehead file (tilehead.ck? TILEHEAD.CK? tilehead.CK?)"));
 	if(filename.isEmpty()) {
@@ -139,8 +160,7 @@ void MainWindow::_openFile(void) {
 	if(!_model.load(stream)) {
 		QMessageBox::critical(this, tr("File Error"), tr("The specified file could not be opened."));
 	}
-	_filename = filename;
-	_directory = QFileInfo(filename).canonicalPath();
+	_setFilename(filename);
 }
 void MainWindow::_saveFile(void) {
 	if(_filename.isEmpty()) {
@@ -154,6 +174,7 @@ void MainWindow::_saveFile(void) {
 	}
 	QDataStream stream(&file);
 	_model.dump(stream);
+	setWindowModified(false);
 }
 void MainWindow::_saveFileAs(void) {
 	QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), _directory,
@@ -168,8 +189,7 @@ void MainWindow::_saveFileAs(void) {
 	}
 	QDataStream stream(&file);
 	_model.dump(stream);
-	_filename = filename;
-	_directory = QFileInfo(filename).canonicalPath();
+	_setFilename(filename);
 }
 
 void MainWindow::_edit(const QModelIndex& index) {
@@ -206,4 +226,41 @@ void MainWindow::_about(void) {
 		"<p>You should have received a copy of the GNU General Public License "
 		"along with this program.  If not, see <a href='http://www.gnu.org/licenses/'>www.gnu.org/licenses/</a>.</p>"
 	));
+}
+void MainWindow::_changed(const QModelIndex&, const QModelIndex&) {
+	setWindowModified(true);
+}
+bool MainWindow::_reallyClose(void) {
+	if(isWindowModified()) {
+		switch(QMessageBox::question(this, tr("Save Changes"),
+			tr("The file has been modified. Would you like to save your changes?"),
+			QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel)) {
+			case QMessageBox::Save:
+				_saveFile();
+			case QMessageBox::Discard:
+				return true;
+			case QMessageBox::Cancel:
+				return false;
+			default:
+				return false;
+		}
+	}
+	return true;
+}
+void MainWindow::closeEvent(QCloseEvent* event) {
+	if(_reallyClose()) {
+		event->accept();
+	} else {
+		event->ignore();
+	}
+}
+void MainWindow::_setFilename(const QString& text) {
+	_filename = text;
+	_directory = QFileInfo(text).canonicalPath();
+	setWindowModified(false);
+	if(_filename.isEmpty()) {
+		setWindowTitle(tr("Unsaved file[*] - Tileset Manager"));
+	} else {
+		setWindowTitle(tr("%1[*] - Tileset Manager").arg(_filename));
+	}
 }

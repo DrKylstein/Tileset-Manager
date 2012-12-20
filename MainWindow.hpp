@@ -41,11 +41,17 @@ class MainWindow: public QMainWindow {
 		void _saveFileAs(void);
 		void _edit(const QModelIndex&);
 		void _about(void);
+		void _changed(const QModelIndex&, const QModelIndex&);
+
+	protected:
+		void closeEvent(QCloseEvent* event);
 
 	private:
 		TileHeadModel _model;
 		QString _filename, _directory;
 		QTextBrowser _helpViewer;
+		bool _reallyClose(void);
+		void _setFilename(const QString&);
 };
 
 #endif
