@@ -3,6 +3,7 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="tileset_manager" />
+		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -31,6 +32,26 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="COPYING" />
+		<Unit filename="MainWindow.cpp" />
+		<Unit filename="MainWindow.hpp" />
+		<Unit filename="README" />
+		<Unit filename="TileHeadModel.cpp" />
+		<Unit filename="TileHeadModel.hpp" />
+		<Unit filename="docs/index.html" />
+		<Unit filename="images/about.png" />
+		<Unit filename="images/exit.png" />
+		<Unit filename="images/help.png" />
+		<Unit filename="images/icon.svg" />
+		<Unit filename="images/new.png" />
+		<Unit filename="images/open.png" />
+		<Unit filename="images/preferences.png" />
+		<Unit filename="images/properties.png" />
+		<Unit filename="images/save-as.png" />
+		<Unit filename="images/save.png" />
+		<Unit filename="main.cpp" />
+		<Unit filename="tileset_manager.pro" />
+		<Unit filename="tileset_manager.qrc" />
 		<Extensions>
 			<code_completion />
 			<debugger />
