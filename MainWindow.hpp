@@ -32,7 +32,7 @@ class MainWindow: public QMainWindow {
 
 	public:
 		MainWindow(QWidget * parent = 0, Qt::WindowFlags flags = 0);
-		//~MainWindow(void);
+		~MainWindow(void);
 
 	private slots:
 		void _newFile(void);
@@ -40,10 +40,12 @@ class MainWindow: public QMainWindow {
 		void _saveFile(void);
 		void _saveFileAs(void);
 		void _edit(const QModelIndex&);
+		void _about(void);
 
 	private:
 		TileHeadModel _model;
 		QString _filename, _directory;
+		QTextBrowser _helpViewer;
 };
 
 #endif

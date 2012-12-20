@@ -46,6 +46,9 @@ class TileHeadModel: public QAbstractListModel {
 
 		TileHeadModel(QObject* parent=0);
 
+	public slots:
+		void setExtendedLevels(bool);
+
 	private:
 		static const int ENTRY_SIZE = 16;
 		static const int ENTRY_COUNT = 91;

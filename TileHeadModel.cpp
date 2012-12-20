@@ -28,7 +28,7 @@ void TileHeadModel::reset(void) {
 	for(int i = 0; i < ENTRY_COUNT; ++i) {
 		_data << "";
 	}
-	for(int i = 1; i < EXTENDED_LEVEL_COUNT; ++i) {
+	for(int i = 1; i <= EXTENDED_LEVEL_COUNT; ++i) {
 		_data[i] = "tileset1.tls";
 	}
 	_data[MAP_LEVEL] = "tileset1.tls";
@@ -115,6 +115,18 @@ bool TileHeadModel::setData (const QModelIndex & index, const QVariant & value, 
 }
 
 
-TileHeadModel::TileHeadModel(QObject* parent): QAbstractListModel(parent) {
+TileHeadModel::TileHeadModel(QObject* parent): QAbstractListModel(parent), _extendedLevels(false) {
 	reset();
+}
+
+void TileHeadModel::setExtendedLevels(bool state) {
+	if(_extendedLevels && !state) {
+		beginRemoveRows(QModelIndex(), 16, 31);
+		_extendedLevels = state;
+		endRemoveRows();
+	} else if(!_extendedLevels && state) {
+		beginInsertRows(QModelIndex(), 16, 31);
+		_extendedLevels = state;
+		endInsertRows();
+	}
 }

@@ -24,6 +24,13 @@
 #include "MainWindow.hpp"
 
 MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(parent, flags) {
+	setWindowTitle(tr("Tileset Manager"));
+	setWindowIcon(QIcon(":/images/icon.svg"));
+
+	QWidget* mainWidget = new QWidget();
+	QVBoxLayout* mainLayout = new QVBoxLayout();
+	mainWidget->setLayout(mainLayout);
+
 	QTableView* view = new QTableView();
 	view->setModel(&_model);
 	view->setAlternatingRowColors(true);
@@ -31,8 +38,15 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(par
 	view->horizontalHeader()->setStretchLastSection(true);
 	view->verticalHeader()->setVisible(true);
 	view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	setCentralWidget(view);
+	mainLayout->addWidget(view);
 	connect(view, SIGNAL(activated(const QModelIndex&)), this, SLOT(_edit(const QModelIndex&)));
+
+	QCheckBox* extended = new QCheckBox(tr("Using 32-level patch"));
+	connect(extended, SIGNAL(toggled(bool)), &_model, SLOT(setExtendedLevels(bool)));
+	mainLayout->addWidget(extended);
+
+	setCentralWidget(mainWidget);
+
 
 	QAction* newAction = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
 	newAction->setShortcuts(QKeySequence::New);
@@ -54,6 +68,17 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(par
 	quitAction->setShortcut(QKeySequence(tr("Ctrl+Q")));
 	connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+	QAction* aboutAction = new QAction(QIcon(":/images/about.png"), tr("&About..."), this);
+	connect(aboutAction, SIGNAL(triggered()), this, SLOT(_about()));
+
+	_helpViewer.setSource(QUrl("qrc:/docs/index.html"));
+	_helpViewer.setWindowTitle("Tileset Manager Help");
+
+	QAction* helpAction = new QAction(QIcon(":/images/help.png"), tr("&Contents"), this);
+	helpAction->setShortcuts(QKeySequence::HelpContents);
+	connect(helpAction, SIGNAL(triggered()), &_helpViewer, SLOT(show()));
+
+
 	QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 	fileMenu->addAction(newAction);
 	fileMenu->addAction(openAction);
@@ -61,10 +86,39 @@ MainWindow::MainWindow(QWidget * parent, Qt::WindowFlags flags): QMainWindow(par
 	fileMenu->addAction(saveAsAction);
 	fileMenu->addSeparator();
 	fileMenu->addAction(quitAction);
-}
-/*~MainWindow::MainWindow(void) {
 
-}*/
+	menuBar()->addSeparator();
+
+	QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
+	helpMenu->addAction(aboutAction);
+	helpMenu->addAction(helpAction);
+
+	QSettings settings(tr("Tileset Manager"), QString(), this);
+	settings.beginGroup("Window");
+		resize(settings.value("Size", QSize(976, 506)).toSize());
+		move(settings.value("Position", QPoint(200, 200)).toPoint());
+		restoreState(settings.value("State").toByteArray());
+		settings.endGroup();
+	settings.beginGroup("Help_Window");
+		_helpViewer.resize(settings.value("Size", QSize(500, 600)).toSize());
+		_helpViewer.move(settings.value("Position", QPoint(200, 200)).toPoint());
+		settings.endGroup();
+	_directory = settings.value("Working_Directory", QString()).toString();
+
+}
+MainWindow::~MainWindow(void) {
+	QSettings settings(tr("Tileset Manager"), QString(), this);
+	settings.beginGroup("Window");
+		settings.setValue("Size", size());
+		settings.setValue("Position", pos());
+		settings.setValue("State", saveState());
+		settings.endGroup();
+	settings.beginGroup("Help_Window");
+		settings.setValue("Size", _helpViewer.size());
+		settings.setValue("Position", _helpViewer.pos());
+		settings.endGroup();
+	settings.setValue("Working_Directory", _directory);
+}
 
 void MainWindow::_newFile(void) {
 	_model.reset();
@@ -132,4 +186,24 @@ void MainWindow::_edit(const QModelIndex& index) {
 		return;
 	}
 	_model.setData(index, filename);
+}
+
+void MainWindow::_about(void) {
+	QMessageBox::about(this, tr("About Tileset Manager"), tr(
+		"<p><b>Tileset Manager</b>, an editor for TILHEAD.CK1 files in the V2 patch for Commander Keen: Invasion of the Vorticons.<br />"
+		"Copyright &copy; 2012 Kyle Delaney.</p>"
+
+		"<p>Tileset Manager is free software: you can redistribute it and/or modify "
+		"it under the terms of the GNU General Public License as published by "
+		"the Free Software Foundation, either version 3 of the License, or "
+		"(at your option) any later version.</p>"
+
+		"<p>Tileset Manager is distributed in the hope that it will be useful, "
+		"but WITHOUT ANY WARRANTY; without even the implied warranty of "
+		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "
+		"GNU General Public License for more details.</p>"
+
+		"<p>You should have received a copy of the GNU General Public License "
+		"along with this program.  If not, see <a href='http://www.gnu.org/licenses/'>www.gnu.org/licenses/</a>.</p>"
+	));
 }
